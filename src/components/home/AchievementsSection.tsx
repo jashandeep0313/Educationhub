@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Play, Star, Quote, X } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
-import { achievements } from "@/lib/data";
+// This links to your 2nd code file
+import { achievements } from "@/lib/data"; 
 
 const AchievementsSection = () => {
   const [activeVideo, setActiveVideo] = useState<string | null>(null);
@@ -50,10 +51,10 @@ const AchievementsSection = () => {
                 <Card className="overflow-hidden card-hover">
                   <div
                     className="relative aspect-video bg-muted cursor-pointer group"
-                    onClick={() => setActiveVideo(achievement.videoUrl)}
+                    onClick={() => setActiveVideo(achievement.videoUrl || null)}
                   >
                     <img
-                      src="{achievement.thumbnail}"
+                      src={achievement.thumbnail}
                       alt={achievement.title}
                       className="w-full h-full object-cover"
                     />
@@ -68,7 +69,7 @@ const AchievementsSection = () => {
                       {achievement.title}
                     </h4>
                     <p className="text-sm text-muted-foreground">
-                      {achievement.student} - {achievement.description}
+                      {achievement.description}
                     </p>
                   </CardContent>
                 </Card>
@@ -102,7 +103,7 @@ const AchievementsSection = () => {
                           key={i}
                           className={`w-4 h-4 ${
                             i < (review.rating || 0)
-                              ? "text-warning fill-warning"
+                              ? "text-yellow-500 fill-yellow-500"
                               : "text-muted"
                           }`}
                         />
@@ -111,7 +112,7 @@ const AchievementsSection = () => {
                     <div className="flex items-center gap-3 pt-4 border-t border-border">
                       <div className="w-10 h-10 rounded-full bg-muted overflow-hidden">
                         <img
-                          src="https://static.vecteezy.com/system/resources/previews/008/442/086/non_2x/illustration-of-human-icon-user-symbol-icon-modern-design-on-blank-background-free-vector.jpg"
+                          src={review.image || "https://static.vecteezy.com/system/resources/previews/008/442/086/non_2x/illustration-of-human-icon-user-symbol-icon-modern-design-on-blank-background-free-vector.jpg"}
                           alt={review.student}
                           className="w-full h-full object-cover"
                         />
@@ -131,36 +132,39 @@ const AchievementsSection = () => {
         </div>
 
         {/* Video Modal */}
-        {activeVideo && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 bg-foreground/80 flex items-center justify-center p-4"
-            onClick={() => setActiveVideo(null)}
-          >
-            <div
-              className="relative w-full max-w-4xl aspect-video bg-foreground rounded-xl overflow-hidden"
-              onClick={(e) => e.stopPropagation()}
+        <AnimatePresence>
+          {activeVideo && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4"
+              onClick={() => setActiveVideo(null)}
             >
-              <button
-                onClick={() => setActiveVideo(null)}
-                className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-background flex items-center justify-center hover:bg-muted transition-colors"
+              <div
+                className="relative w-full max-w-4xl aspect-video bg-black rounded-xl overflow-hidden"
+                onClick={(e) => e.stopPropagation()}
               >
-                <X className="w-5 h-5" />
-              </button>
-              <iframe
-                src={activeVideo}
-                title="Video"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                allowFullScreen
-              />
-            </div>
-          </motion.div>
-        )}
+                <button
+                  onClick={() => setActiveVideo(null)}
+                  className="absolute -top-12 right-0 w-10 h-10 rounded-full bg-white flex items-center justify-center hover:bg-gray-200 transition-colors"
+                >
+                  <X className="w-5 h-5 text-black" />
+                </button>
+                <iframe
+                  src={activeVideo.replace("instagram.com/p/", "instagram.com/p/") + "embed"}
+                  title="Video"
+                  className="w-full h-full"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </section>
   );
 };
+
 export default AchievementsSection;

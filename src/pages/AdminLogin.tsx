@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Shield, Mail, Lock, Eye, EyeOff } from "lucide-react";
+import { Shield, Mail, Lock, Eye, EyeOff, Key } from "lucide-react"; // Added Key icon
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,19 +16,24 @@ const AdminLogin = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
+    specialCode: "", // Added specialCode to state
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
-    // Demo login - in real app, this would authenticate with backend
+    // Simulated login verification
     setTimeout(() => {
-      if (formData.email === "admin@iq.com" && formData.password === "admin123") {
+      if (
+        formData.email === "admin@iq.com" && 
+        formData.password === "admin123" && 
+        formData.specialCode === "IQ.Admin.310" // Verification for special code
+      ) {
         toast.success("Welcome, Admin!");
         navigate("/admin-dashboard");
       } else {
-        toast.error("Invalid credentials. Try admin@iq.com / admin123");
+        toast.error("Invalid credentials or Special Code.");
       }
       setIsLoading(false);
     }, 1000);
@@ -58,6 +63,23 @@ const AdminLogin = () => {
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {/* Special Admin Code Field */}
+              <div className="space-y-2">
+                <Label htmlFor="specialCode">Admin Special Code</Label>
+                <div className="relative">
+                  <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
+                  <Input
+                    id="specialCode"
+                    type="text"
+                    placeholder="Enter code (IQ.Admin.310)"
+                    className="pl-10 border-primary/20"
+                    value={formData.specialCode}
+                    onChange={(e) => setFormData({ ...formData, specialCode: e.target.value })}
+                    required
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label htmlFor="email">Admin Email</Label>
                 <div className="relative">
@@ -98,11 +120,12 @@ const AdminLogin = () => {
               </div>
 
               <Button type="submit" className="w-full" size="lg" disabled={isLoading}>
-                {isLoading ? "Signing in..." : "Access Admin Panel"}
+                {isLoading ? "Verifying..." : "Access Admin Panel"}
               </Button>
             </form>
 
             <div className="mt-6 text-center text-sm text-muted-foreground">
+              <p>Special Code: IQ.Admin.310</p>
               <p>Demo credentials: admin@iq.com / admin123</p>
             </div>
           </CardContent>
