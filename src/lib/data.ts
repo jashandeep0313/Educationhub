@@ -61,6 +61,9 @@ export const teachers = [
     students: 500,
     rating: 4.9,
     bio: "Certified IELTS trainer with expertise in all four modules.",
+    phone: "+91 98765 43220",
+    email: "vikrant@iqeducationhub.com",
+    address: "Sector 10, Chandigarh",
   },
   {
     id: "2",
@@ -71,6 +74,9 @@ export const teachers = [
     students: 1000,
     rating: 4.9,
     bio: "Immigration expert with successful visa applications worldwide.",
+    phone: "+91 98765 43221",
+    email: "kashmir@iqeducationhub.com",
+    address: "Phase 3, Mohali",
   },
   {
     id: "3",
@@ -81,6 +87,9 @@ export const teachers = [
     students: 300,
     rating: 4.7,
     bio: "Dynamic teacher specializing in spoken English and communication.",
+    phone: "+91 98765 43222",
+    email: "jashan.faculty@iqeducationhub.com",
+    address: "Dera Bassi, Punjab",
   },
   {
     id: "4",
@@ -91,6 +100,9 @@ export const teachers = [
     students: 800,
     rating: 4.9,
     bio: "Senior educator with expertise in CBSE curriculum and board preparation.",
+    phone: "+91 98765 43223",
+    email: "sunita@iqeducationhub.com",
+    address: "Zirakpur, Punjab",
   },
 ];
 
@@ -162,6 +174,7 @@ export interface Student {
   feeStatus: "paid" | "pending" | "overdue";
   lastPaymentDate: string | null;
   nextDueDate: string;
+  address?: string;
 }
 
 export const sampleStudents: Student[] = [
@@ -177,11 +190,12 @@ export const sampleStudents: Student[] = [
     feeStatus: "paid",
     lastPaymentDate: "2025-01-01",
     nextDueDate: "2025-02-01",
+    address: "Zirakpur, Punjab",
   },
   {
     id: "STU002",
-    name: "Manpreet Kaur",
-    email: "manpreet@email.com",
+    name: "jashan Singh",
+    email: "jashan@email.com",
     image: "/images/photo.jpg",
     phone: "+91 98765 43211",
     course: "Study Visa Guidance",
@@ -190,6 +204,7 @@ export const sampleStudents: Student[] = [
     feeStatus: "pending",
     lastPaymentDate: "2024-12-01",
     nextDueDate: "2025-01-10",
+    address: "Dera Bassi, Punjab",
   },
   {
     id: "STU003",
@@ -203,6 +218,56 @@ export const sampleStudents: Student[] = [
     feeStatus: "overdue",
     lastPaymentDate: "2024-11-15",
     nextDueDate: "2024-12-15",
+    address: "Ambala City, Haryana",
+  },
+];
+
+// Blog posts
+export const blogPosts = [
+  {
+    id: "1",
+    title: "How to Achieve Band 7+ in IELTS: Expert Tips",
+    summary: "Discover proven strategies from our certified IELTS trainers to push your band score beyond 7 with targeted practice and smart study habits.",
+    date: "March 10, 2026",
+    category: "IELTS",
+    image: "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?w=600&h=400&fit=crop",
+    slug: "ielts-band-7-tips",
+  },
+  {
+    id: "2",
+    title: "Canada Study Visa 2026: Complete Process Guide",
+    summary: "A step-by-step walkthrough of everything you need — from university selection and required documents to SOP writing and visa interview preparation.",
+    date: "February 28, 2026",
+    category: "Visa",
+    image: "https://images.pexels.com/photos/346885/pexels-photo-346885.jpeg?w=600&h=400&fit=crop",
+    slug: "canada-study-visa-2026",
+  },
+  {
+    id: "3",
+    title: "5 Common Spoken English Mistakes and How to Fix Them",
+    summary: "Indian students often make the same grammatical and pronunciation slip-ups. Our English faculty breaks down each mistake and gives you simple, practical fixes.",
+    date: "February 15, 2026",
+    category: "English",
+    image: "https://images.pexels.com/photos/4145153/pexels-photo-4145153.jpeg?w=600&h=400&fit=crop",
+    slug: "spoken-english-mistakes",
+  },
+  {
+    id: "4",
+    title: "Board Exam Preparation: A Month-by-Month Plan",
+    summary: "Structured study schedule for Class 10 and 12 students. Learn how to manage time, revise effectively, and walk into the exam hall with confidence.",
+    date: "January 30, 2026",
+    category: "Academic",
+    image: "https://images.pexels.com/photos/4778621/pexels-photo-4778621.jpeg?w=600&h=400&fit=crop",
+    slug: "board-exam-preparation",
+  },
+  {
+    id: "5",
+    title: "PTE vs IELTS: Which Exam Should You Take?",
+    summary: "Both tests open doors abroad, but they suit different learners. We compare format, scoring, acceptance, and cost so you can make the right choice.",
+    date: "January 12, 2026",
+    category: "IELTS",
+    image: "https://images.pexels.com/photos/3755760/pexels-photo-3755760.jpeg?w=600&h=400&fit=crop",
+    slug: "pte-vs-ielts",
   },
 ];
 

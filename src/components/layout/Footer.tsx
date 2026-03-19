@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { GraduationCap, Phone, Mail, MapPin, Instagram, Facebook, Youtube, Twitter } from "lucide-react";
+import { GraduationCap, Phone, Mail, MapPin, Instagram, Facebook, Youtube } from "lucide-react";
 import { instituteInfo } from "@/lib/data";
 
 const Footer = () => {

@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Star, Users, Award, ChevronLeft, ChevronRight } from "lucide-react";
+import { Link } from "react-router-dom";
+import { Star, Users, Award, ChevronLeft, ChevronRight, ArrowRight, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { teachers } from "@/lib/data";
+import { Button } from "@/components/ui/button";
+import { useData } from "@/context/DataContext";
 
 const TeachersSection = () => {
+  const { teachers } = useData();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
@@ -24,7 +27,7 @@ const TeachersSection = () => {
   };
 
   return (
-    <section className="py-20">
+    <section className="py-14">
       <div className="container mx-auto px-4">
         {/* Header */}
         <motion.div
@@ -36,9 +39,14 @@ const TeachersSection = () => {
           <Badge variant="secondary" className="mb-4">
             Our Faculty
           </Badge>
-          <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
-            Meet Our <span className="text-gradient-primary">Expert Teachers</span>
-          </h2>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold">
+              Meet Our <span className="text-gradient-primary">Expert Teachers</span>
+            </h2>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-success/10 text-success text-xs font-semibold animate-pulse">
+              <Zap className="w-3 h-3" /> Live
+            </span>
+          </div>
           <p className="text-muted-foreground">
             Learn from industry experts with years of experience in their respective fields.
           </p>
@@ -132,6 +140,21 @@ const TeachersSection = () => {
             ))}
           </div>
         </div>
+
+        {/* See All Teachers CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mt-12"
+        >
+          <Link to="/teachers">
+            <Button variant="hero" size="lg" className="gap-2 px-8">
+              See All Teachers
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

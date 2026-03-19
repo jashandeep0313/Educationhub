@@ -3,9 +3,13 @@ import Footer from "@/components/layout/Footer";
 import HeroSection from "@/components/home/HeroSection";
 import CoursesSection from "@/components/home/CoursesSection";
 import TeachersSection from "@/components/home/TeachersSection";
-import AchievementsSection from "@/components/home/AchievementsSection";
+
+import VideoTestimonialsSection from "@/components/home/VideoTestimonialsSection";
 import LocationSection from "@/components/home/LocationSection";
 import CTASection from "@/components/home/CTASection";
+import AboutSection from "@/components/home/AboutSection";
+import BlogSection from "@/components/home/BlogSection";
+import ContactSection from "@/components/home/ContactSection";
 
 const Index = () => {
   return (
@@ -14,9 +18,12 @@ const Index = () => {
       <main>
         <HeroSection />
         <CoursesSection />
+        <AboutSection />
         <TeachersSection />
-        <AchievementsSection />
+        <VideoTestimonialsSection />
+        <BlogSection preview={true} />
         <LocationSection />
+        <ContactSection />
         <CTASection />
       </main>
       <Footer />

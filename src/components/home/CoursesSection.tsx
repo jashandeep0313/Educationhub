@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Clock, Users, Star, ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { Clock, Users, Star, ArrowRight, ChevronLeft, ChevronRight, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { courses } from "@/lib/data";
+import { useData } from "@/context/DataContext";
 import { Link } from "react-router-dom";
 
 const CoursesSection = () => {
+  const { courses } = useData();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
 
@@ -42,9 +43,14 @@ const CoursesSection = () => {
           <Badge variant="secondary" className="mb-4">
             Our Courses
           </Badge>
-          <h2 className="font-heading text-3xl md:text-4xl font-bold mb-4">
-            Explore Our <span className="text-gradient-primary">Popular Courses</span>
-          </h2>
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <h2 className="font-heading text-3xl md:text-4xl font-bold">
+              Explore Our <span className="text-gradient-primary">Popular Courses</span>
+            </h2>
+            <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-success/10 text-success text-xs font-semibold animate-pulse">
+              <Zap className="w-3 h-3" /> Live
+            </span>
+          </div>
           <p className="text-muted-foreground">
             Choose from our expertly designed courses to achieve your educational and career goals.
           </p>
@@ -204,6 +210,21 @@ const CoursesSection = () => {
             </motion.div>
           ))}
         </div>
+
+        {/* Get More Courses CTA */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="text-center mt-12"
+        >
+          <Link to="/courses">
+            <Button variant="hero" size="lg" className="gap-2 px-8">
+              Get More Courses
+              <ArrowRight className="w-5 h-5" />
+            </Button>
+          </Link>
+        </motion.div>
       </div>
     </section>
   );

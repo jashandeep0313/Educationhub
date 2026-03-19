@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X, GraduationCap, ChevronDown } from "lucide-react";
+import { GraduationCap, Menu, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { instituteInfo } from "@/lib/data";
 
