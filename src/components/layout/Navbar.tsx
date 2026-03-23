@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { GraduationCap, Menu, X } from "lucide-react";
+import { GraduationCap, Menu, X, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { instituteInfo } from "@/lib/data";
 
@@ -9,6 +9,7 @@ const navLinks = [
   { name: "Home", path: "/" },
   { name: "About Us", path: "/about" },
   { name: "Courses", path: "/courses" },
+  { name: "Faculty", path: "/teachers" },
   { name: "Blog", path: "/blog" },
   { name: "Contact Us", path: "/contact" },
 ];
@@ -59,9 +60,10 @@ const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="hidden lg:flex items-center gap-3">
-            <Link to="/student-login">
-              <Button variant="outline" size="default">
-                Student Login
+            <Link to="/portal-login">
+              <Button variant="outline" className="gap-2">
+                <User className="w-4 h-4" />
+                Portal Login
               </Button>
             </Link>
             <Link to="/admin-login">
@@ -106,9 +108,9 @@ const Navbar = () => {
                 </Link>
               ))}
               <div className="flex flex-col gap-2 mt-4 pt-4 border-t border-border">
-                <Link to="/student-login" onClick={() => setIsOpen(false)}>
+                <Link to="/portal-login" onClick={() => setIsOpen(false)}>
                   <Button variant="outline" className="w-full">
-                    Student Login
+                    Portal Login
                   </Button>
                 </Link>
                 <Link to="/admin-login" onClick={() => setIsOpen(false)}>

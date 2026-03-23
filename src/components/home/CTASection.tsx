@@ -1,10 +1,17 @@
 import { motion } from "framer-motion";
 import { ArrowRight, Phone } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { instituteInfo } from "@/lib/data";
 
 const CTASection = () => {
+  const navigate = useNavigate();
+  
+  const handleGenericEnroll = () => {
+    sessionStorage.setItem("pendingCourseToEnroll", "GenEnroll");
+    navigate("/portal-login");
+  };
+
   return (
     <section className="py-20 relative overflow-hidden">
       {/* Background */}
@@ -27,15 +34,14 @@ const CTASection = () => {
             Enroll now and get a free counseling session!
           </p>
           <div className="flex flex-wrap items-center justify-center gap-4">
-            <Link to="/courses">
               <Button
                 size="xl"
+                onClick={handleGenericEnroll}
                 className="bg-accent text-accent-foreground hover:bg-accent/90 shadow-accent"
               >
                 Enroll Now
                 <ArrowRight className="w-5 h-5" />
               </Button>
-            </Link>
             <a href={`tel:${instituteInfo.phone}`}>
               <Button
                 size="xl"

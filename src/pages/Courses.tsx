@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useData } from "@/context/DataContext";
+import EnquireModal from "@/components/modals/EnquireModal";
+import { useState } from "react";
 
 const categoryColors: Record<string, string> = {
   Language: "bg-primary/10 text-primary",
@@ -15,6 +17,8 @@ const categoryColors: Record<string, string> = {
 
 const Courses = () => {
   const { courses } = useData();
+  const [enquireCourseId, setEnquireCourseId] = useState<string | null>(null);
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -102,7 +106,7 @@ const Courses = () => {
                       <span className="font-heading font-bold text-primary text-xl">
                         ₹{course.price.toLocaleString()}
                       </span>
-                      <Button size="sm" variant="hero" className="gap-1.5">
+                      <Button size="sm" variant="hero" className="gap-1.5" onClick={() => setEnquireCourseId(course.id)}>
                         Enquire
                         <ArrowRight className="w-3.5 h-3.5" />
                       </Button>
@@ -115,6 +119,11 @@ const Courses = () => {
         </section>
       </main>
       <Footer />
+      <EnquireModal 
+        isOpen={!!enquireCourseId} 
+        onClose={() => setEnquireCourseId(null)} 
+        courseId={enquireCourseId || undefined} 
+      />
     </div>
   );
 };

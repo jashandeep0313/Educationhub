@@ -4,21 +4,29 @@ import { Clock, Users, Star, ArrowRight, ChevronLeft, ChevronRight, Zap } from "
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useData } from "@/context/DataContext";
-import { Link } from "react-router-dom";
+import { useData, Course } from "@/context/DataContext";
+import { Link, useNavigate } from "react-router-dom";
+import CourseDetailsModal from "@/components/modals/CourseDetailsModal";
 
 const CoursesSection = () => {
   const { courses } = useData();
+  const navigate = useNavigate();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [selectedCourseDetails, setSelectedCourseDetails] = useState<Course | null>(null);
+
+  const handleEnrollDirectly = (courseId: string) => {
+    sessionStorage.setItem("pendingCourseToEnroll", courseId);
+    navigate("/student-login");
+  };
 
   useEffect(() => {
-    if (!isAutoPlaying) return;
+    if (!isAutoPlaying || courses.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % courses.length);
     }, 4000);
     return () => clearInterval(interval);
-  }, [isAutoPlaying]);
+  }, [isAutoPlaying, courses.length]);
 
   const nextSlide = () => {
     setIsAutoPlaying(false);
@@ -29,6 +37,14 @@ const CoursesSection = () => {
     setIsAutoPlaying(false);
     setCurrentIndex((prev) => (prev - 1 + courses.length) % courses.length);
   };
+
+  if (!courses || courses.length === 0) {
+    return (
+      <section className="py-20 bg-muted/30 flex items-center justify-center">
+         <p className="text-muted-foreground animate-pulse">Loading Catalog...</p>
+      </section>
+    );
+  }
 
   return (
     <section className="py-20 bg-muted/30">
@@ -112,12 +128,10 @@ const CoursesSection = () => {
                     <div className="text-2xl font-bold text-primary">
                       ₹{courses[currentIndex].price.toLocaleString()}
                     </div>
-                    <Link to="/courses">
-                      <Button variant="hero">
-                        Enroll Now
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </Link>
+                    <Button variant="hero" onClick={() => handleEnrollDirectly(courses[currentIndex].id)}>
+                      Enroll Now
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
                   </div>
                 </div>
               </motion.div>
@@ -202,7 +216,7 @@ const CoursesSection = () => {
                   <div className="font-bold text-primary">
                     ₹{course.price.toLocaleString()}
                   </div>
-                  <Button size="sm" variant="outline">
+                  <Button size="sm" variant="outline" onClick={() => setSelectedCourseDetails(course)}>
                     View Details
                   </Button>
                 </CardFooter>
@@ -218,14 +232,20 @@ const CoursesSection = () => {
           viewport={{ once: true }}
           className="text-center mt-12"
         >
-          <Link to="/courses">
-            <Button variant="hero" size="lg" className="gap-2 px-8">
-              Get More Courses
-              <ArrowRight className="w-5 h-5" />
+          <Link to="/portal-login">
+            <Button variant="hero" className="w-full gap-2">
+              Enroll via Portal
+              <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
         </motion.div>
       </div>
+
+      <CourseDetailsModal 
+        isOpen={!!selectedCourseDetails} 
+        onClose={() => setSelectedCourseDetails(null)} 
+        course={selectedCourseDetails} 
+      />
     </section>
   );
 };

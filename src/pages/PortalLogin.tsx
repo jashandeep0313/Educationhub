@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { GraduationCap, Mail, Lock, Eye, EyeOff, User, Phone } from "lucide-react";
+import { GraduationCap, Mail, Lock, Eye, EyeOff, User, Phone, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,9 +10,9 @@ import { toast } from "sonner";
 import { instituteInfo, courses } from "@/lib/data";
 import { useData } from "@/context/DataContext";
 
-const StudentLogin = () => {
+const PortalLogin = () => {
   const navigate = useNavigate();
-  const { login, addStudent, updateStudent } = useData();
+  const { login, register, updateStudent } = useData();
   const [isLoginView, setIsLoginView] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -23,13 +23,14 @@ const StudentLogin = () => {
     password: "",
     name: "",
     phone: "",
+    role: "student",
+    teacherCode: "",
   });
 
   const completeEnrollmentPipeline = async (userId: string, userRole: string) => {
     const pendingCourseId = sessionStorage.getItem('pendingCourseToEnroll');
     
     if (pendingCourseId && userRole === "student") {
-      // Find course title
       const courseObj = courses.find(c => c.id === pendingCourseId);
       if (courseObj) {
         await updateStudent(userId, { 
@@ -45,7 +46,7 @@ const StudentLogin = () => {
       navigate("/teacher-dashboard");
     } else if (userRole === "student") {
       navigate("/student-dashboard");
-    } else {
+    } else if (userRole === "admin") {
       navigate("/admin-dashboard");
     }
   };
@@ -55,13 +56,13 @@ const StudentLogin = () => {
     setIsLoading(true);
 
     try {
-      const user = await login(formData.email, formData.password);
+      const user = await login(formData.email, formData.password, formData.role);
       if (user) {
         toast.success(`Welcome back, ${user.name}!`);
         await completeEnrollmentPipeline(user.id, user.role);
       }
     } catch (error) {
-      toast.error("Login failed. Please check your credentials.");
+      toast.error("Login failed. Please check your credentials and selected role.");
     } finally {
       setIsLoading(false);
     }
@@ -69,29 +70,39 @@ const StudentLogin = () => {
 
   const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (formData.role === "teacher" && !formData.teacherCode) {
+      toast.error("Teacher Verification Code is required for faculty registration.");
+      return;
+    }
+
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
       const pendingCourseId = sessionStorage.getItem('pendingCourseToEnroll');
-      const initialCourse = pendingCourseId 
+      const initialCourse = (formData.role === "student" && pendingCourseId)
         ? courses.find(c => c.id === pendingCourseId)?.title 
         : "Not Enrolled";
 
-      const newUser = addStudent({
+      const newUser = await register({
         name: formData.name,
         email: formData.email,
+        password: formData.password,
         phone: formData.phone,
+        role: formData.role,
+        teacherCode: formData.teacherCode,
         course: initialCourse,
       });
 
       if (newUser) {
         toast.success(`Registration successful! Welcome to IQ Hub, ${newUser.name}.`);
-        completeEnrollmentPipeline(newUser.id, newUser.role);
-      } else {
-        toast.error("An account with this email already exists.");
+        await completeEnrollmentPipeline(newUser.id, newUser.role);
       }
+    } catch (error) {
+      // Error is already toasted in DataContext
+    } finally {
       setIsLoading(false);
-    }, 600);
+    }
   };
 
   return (
@@ -116,14 +127,14 @@ const StudentLogin = () => {
             </CardTitle>
             <CardDescription className="px-4">
               {isLoginView 
-                ? "Students and Faculty, securely access your dashboard."
-                : "Join thousands of successful students at IQ Hub today."}
+                ? "Access your dashboard based on your role."
+                : "Join IQ Hub as a Student or Faculty member."}
             </CardDescription>
           </CardHeader>
           
           <CardContent>
             {/* View Toggles */}
-            <div className="w-full grid grid-cols-2 p-1 mb-8 bg-muted/50 rounded-lg">
+            <div className="w-full grid grid-cols-2 p-1 mb-6 bg-muted/50 rounded-lg">
               <button 
                 type="button"
                 className={`py-2 text-sm font-semibold rounded-md transition-all ${isLoginView ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
@@ -140,16 +151,43 @@ const StudentLogin = () => {
               </button>
             </div>
 
+            {/* Role Selection */}
+            <div className="mb-6 space-y-3">
+              <Label className="text-sm font-medium">Select Your Role</Label>
+              <div className="grid grid-cols-2 gap-4">
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: "student" })}
+                  className={`flex flex-col items-center justify-between rounded-md border-2 p-4 transition-all hover:bg-accent ${
+                    formData.role === "student" ? "border-primary bg-primary/5 text-primary" : "border-muted bg-popover"
+                  }`}
+                >
+                  <User className={`mb-2 h-6 w-6 ${formData.role === "student" ? "text-primary" : "text-muted-foreground"}`} />
+                  <span className="text-sm font-medium">Student</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setFormData({ ...formData, role: "teacher" })}
+                  className={`flex flex-col items-center justify-between rounded-md border-2 p-4 transition-all hover:bg-accent ${
+                    formData.role === "teacher" ? "border-primary bg-primary/5 text-primary" : "border-muted bg-popover"
+                  }`}
+                >
+                  <ShieldCheck className={`mb-2 h-6 w-6 ${formData.role === "teacher" ? "text-primary" : "text-muted-foreground"}`} />
+                  <span className="text-sm font-medium">Teacher</span>
+                </button>
+              </div>
+            </div>
+
             <AnimatePresence mode="wait">
               {isLoginView ? (
                 <motion.form 
-                  key="login"
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: 20 }}
-                  transition={{ duration: 0.2 }}
-                  onSubmit={handleLoginSubmit} 
-                  className="space-y-4"
+                   key="login"
+                   initial={{ opacity: 0, x: -20 }}
+                   animate={{ opacity: 1, x: 0 }}
+                   exit={{ opacity: 0, x: 20 }}
+                   transition={{ duration: 0.2 }}
+                   onSubmit={handleLoginSubmit} 
+                   className="space-y-4"
                 >
                   <div className="space-y-2">
                     <Label htmlFor="email">Email</Label>
@@ -174,7 +212,7 @@ const StudentLogin = () => {
                       <Input
                         id="password"
                         type={showPassword ? "text" : "password"}
-                        placeholder="Any password works for demo"
+                        placeholder="Enter your password"
                         className="pl-10 pr-10"
                         value={formData.password}
                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
@@ -190,18 +228,8 @@ const StudentLogin = () => {
                     </div>
                   </div>
 
-                  <div className="flex items-center justify-between text-sm py-2">
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input type="checkbox" className="rounded border-input text-primary accent-primary w-4 h-4" />
-                      <span className="text-muted-foreground hover:text-foreground transition-colors">Remember me</span>
-                    </label>
-                    <Link to="/forgot-password" className="text-primary hover:underline font-medium">
-                      Forgot password?
-                    </Link>
-                  </div>
-
                   <Button type="submit" className="w-full shadow-md" size="lg" disabled={isLoading}>
-                    {isLoading ? "Authenticating..." : "Secure Sign In"}
+                    {isLoading ? "Authenticating..." : `Sign In as ${formData.role === 'teacher' ? 'Faculty' : 'Student'}`}
                   </Button>
                 </motion.form>
               ) : (
@@ -230,23 +258,44 @@ const StudentLogin = () => {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
-                    <div className="space-y-2 col-span-2">
-                      <Label htmlFor="reg-email">Email</Label>
+                  <div className="space-y-2">
+                    <Label htmlFor="reg-email">Email</Label>
+                    <div className="relative">
+                      <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                      <Input
+                        id="reg-email"
+                        type="email"
+                        placeholder="john@example.com"
+                        className="pl-10"
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                        required
+                      />
+                    </div>
+                  </div>
+
+                  {formData.role === "teacher" && (
+                    <motion.div 
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: "auto" }}
+                      className="space-y-2"
+                    >
+                      <Label htmlFor="teacher-code" className="text-secondary-foreground font-bold">Teacher Verification Code</Label>
                       <div className="relative">
-                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                        <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-primary" />
                         <Input
-                          id="reg-email"
-                          type="email"
-                          placeholder="john@example.com"
-                          className="pl-10"
-                          value={formData.email}
-                          onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                          id="teacher-code"
+                          type="text"
+                          placeholder="Enter special faculty code"
+                          className="pl-10 border-primary/50 bg-primary/5"
+                          value={formData.teacherCode}
+                          onChange={(e) => setFormData({ ...formData, teacherCode: e.target.value })}
                           required
                         />
                       </div>
-                    </div>
-                  </div>
+                      <p className="text-[10px] text-muted-foreground">Authorized faculty only.</p>
+                    </motion.div>
+                  )}
 
                   <div className="space-y-2">
                     <Label htmlFor="reg-phone">Phone Number</Label>
@@ -288,24 +337,15 @@ const StudentLogin = () => {
                   </div>
 
                   <Button type="submit" className="w-full shadow-md mt-6" size="lg" disabled={isLoading}>
-                    {isLoading ? "Creating Account..." : "Create Account"}
+                    {isLoading ? "Creating Account..." : `Register as ${formData.role === 'teacher' ? 'Faculty' : 'Student'}`}
                   </Button>
                 </motion.form>
               )}
             </AnimatePresence>
 
             <div className="mt-8 pt-6 border-t border-border text-center">
-              <p className="text-sm text-muted-foreground mb-2">Demo Credentials</p>
-              <div className="flex justify-center gap-4 text-xs font-mono bg-muted/30 p-3 rounded-lg">
-                <div className="text-left">
-                  <span className="text-primary font-bold">Student:</span><br/>gurpreet@email.com
-                </div>
-                <div className="text-left border-l pl-4 border-border">
-                  <span className="text-primary font-bold">Teacher:</span><br/>vikrant@iqeducationhub.com
-                </div>
-              </div>
+               <p className="text-xs text-muted-foreground mb-2">Secure access provided by IQ Education Hub</p>
             </div>
-            
           </CardContent>
         </Card>
 
@@ -319,4 +359,4 @@ const StudentLogin = () => {
   );
 };
 
-export default StudentLogin;
+export default PortalLogin;

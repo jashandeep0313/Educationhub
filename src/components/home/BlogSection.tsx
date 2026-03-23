@@ -1,9 +1,9 @@
 import { motion } from "framer-motion";
-import { ArrowRight, CalendarDays } from "lucide-react";
+import { ArrowRight, CalendarDays, Award } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { blogPosts } from "@/lib/data";
+import { useData } from "@/context/DataContext";
 import { Link } from "react-router-dom";
 
 interface BlogSectionProps {
@@ -19,7 +19,8 @@ const categoryColor: Record<string, string> = {
 };
 
 const BlogSection = ({ preview = false }: BlogSectionProps) => {
-  const posts = preview ? blogPosts.slice(0, 3) : blogPosts;
+  const { blogs } = useData();
+  const posts = preview ? blogs.slice(0, 3) : blogs;
 
   return (
     <section id="blog" className="py-14 bg-muted/30">
@@ -62,7 +63,7 @@ const BlogSection = ({ preview = false }: BlogSectionProps) => {
                     alt={post.title}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                   />
-                  <div className="absolute top-3 left-3">
+                  <div className="absolute top-3 left-3 flex gap-2">
                     <span
                       className={`text-xs font-semibold px-3 py-1 rounded-full ${
                         categoryColor[post.category] ??
@@ -71,6 +72,11 @@ const BlogSection = ({ preview = false }: BlogSectionProps) => {
                     >
                       {post.category}
                     </span>
+                    {post.achievement && (
+                      <span className="bg-warning text-warning-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                        <Award className="w-3 h-3" /> Achievement
+                      </span>
+                    )}
                   </div>
                 </div>
 

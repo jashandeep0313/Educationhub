@@ -4,27 +4,33 @@ import { Link } from "react-router-dom";
 import { Star, Users, Award, ChevronLeft, ChevronRight, ArrowRight, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useData } from "@/context/DataContext";
+import { useData, Teacher } from "@/context/DataContext";
 
 const TeachersSection = () => {
   const { teachers } = useData();
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
+    if (teachers.length === 0) return;
     const interval = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % teachers.length);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [teachers.length]);
 
   const getVisibleTeachers = () => {
-    const visible = [];
+    const visible: (Teacher & { position: number })[] = [];
+    if (teachers.length === 0) return visible;
     for (let i = 0; i < 3; i++) {
       const index = (currentIndex + i) % teachers.length;
       visible.push({ ...teachers[index], position: i });
     }
     return visible;
   };
+
+  if (!teachers || teachers.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-14">

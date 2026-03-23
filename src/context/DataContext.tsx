@@ -1,14 +1,14 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
-import {
-  courses as defaultCourses,
-  teachers as defaultTeachers,
-  sampleStudents as defaultStudents,
-  Student,
-} from "@/lib/data";
+import axios from "axios";
+import { toast } from "sonner";
+import { Student } from "@/lib/data";
+
+const API_URL = "http://localhost:5000/api";
 
 // ── Types ───────────────────────────────────────────────────────
 export interface Course {
   id: string;
+  _id?: string;
   title: string;
   description: string;
   image: string;
@@ -22,6 +22,7 @@ export interface Course {
 
 export interface Teacher {
   id: string;
+  _id?: string;
   name: string;
   role: string;
   image: string;
@@ -34,115 +35,241 @@ export interface Teacher {
   address?: string;
 }
 
+export interface Blog {
+  id: string;
+  _id?: string;
+  title: string;
+  summary: string;
+  date: string;
+  category: string;
+  image: string;
+  slug?: string;
+  achievement?: boolean;
+}
+
+export interface User {
+  id: string;
+  email: string;
+  role: "student" | "teacher" | "admin";
+  name: string;
+}
+
 interface DataContextType {
-  // Data
+  currentUser: User | null;
+  login: (email: string, password?: string, role?: string) => Promise<User | null>;
+  logout: () => void;
   courses: Course[];
   teachers: Teacher[];
   students: Student[];
-
-  // Course CRUD
+  blogs: Blog[];
+  isLoading: boolean;
+  isError: boolean;
+  refreshData: () => Promise<void>;
   addCourse: (course: Omit<Course, "id">) => void;
   updateCourse: (id: string, updates: Partial<Course>) => void;
   deleteCourse: (id: string) => void;
-
-  // Teacher CRUD
   addTeacher: (teacher: Omit<Teacher, "id">) => void;
   updateTeacher: (id: string, updates: Partial<Teacher>) => void;
   deleteTeacher: (id: string) => void;
-
-  // Student CRUD
+  register: (userData: any) => Promise<User | null>;
+  updateStudent: (id: string, updates: Partial<Student>) => void;
   deleteStudent: (id: string) => void;
+  addBlog: (blog: Omit<Blog, "id" | "date" | "slug">) => void;
+  deleteBlog: (id: string) => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// ── Local‑Storage Helpers ───────────────────────────────────────
-const STORAGE_KEYS = {
-  courses: "iq_hub_courses",
-  teachers: "iq_hub_teachers",
-  students: "iq_hub_students",
+// Helper to normalize MongoDB _id to React id
+const normalizeData = (dataArray: any[]) => {
+  return dataArray.map(item => ({ ...item, id: item._id }));
 };
-
-function loadFromStorage<T>(key: string, fallback: T): T {
-  try {
-    const raw = localStorage.getItem(key);
-    return raw ? JSON.parse(raw) : fallback;
-  } catch {
-    return fallback;
-  }
-}
-
-function saveToStorage<T>(key: string, data: T) {
-  localStorage.setItem(key, JSON.stringify(data));
-}
 
 // ── Provider ────────────────────────────────────────────────────
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [courses, setCourses] = useState<Course[]>(() =>
-    loadFromStorage(STORAGE_KEYS.courses, defaultCourses as Course[])
-  );
-  const [teachers, setTeachers] = useState<Teacher[]>(() =>
-    loadFromStorage(STORAGE_KEYS.teachers, defaultTeachers as Teacher[])
-  );
-  const [students, setStudents] = useState<Student[]>(() =>
-    loadFromStorage(STORAGE_KEYS.students, defaultStudents)
-  );
+  
+  const [currentUser, setCurrentUser] = useState<User | null>(() => {
+    try {
+      const raw = localStorage.getItem("iq_hub_user");
+      return raw ? JSON.parse(raw) : null;
+    } catch { return null; }
+  });
 
-  // Persist on every change
-  useEffect(() => { saveToStorage(STORAGE_KEYS.courses, courses); }, [courses]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.teachers, teachers); }, [teachers]);
-  useEffect(() => { saveToStorage(STORAGE_KEYS.students, students); }, [students]);
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [blogs, setBlogs] = useState<Blog[]>([]);
+  const [students, setStudents] = useState<Student[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isError, setIsError] = useState(false);
 
-  // ── Course CRUD ─────────────────────────────────────────────
-  const addCourse = useCallback((course: Omit<Course, "id">) => {
-    const newCourse: Course = { ...course, id: crypto.randomUUID() };
-    setCourses((prev) => [...prev, newCourse]);
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
+    setIsError(false);
+    try {
+      const [courseRes, teacherRes, blogRes, studentRes] = await Promise.all([
+        axios.get(`${API_URL}/courses`),
+        axios.get(`${API_URL}/teachers`),
+        axios.get(`${API_URL}/blogs`),
+        axios.get(`${API_URL}/students`)
+      ]);
+      
+      setCourses(normalizeData(courseRes.data));
+      setTeachers(normalizeData(teacherRes.data));
+      setBlogs(normalizeData(blogRes.data));
+      setStudents(normalizeData(studentRes.data));
+      setIsError(false);
+    } catch (error) {
+      console.error("Failed to fetch Node API data:", error);
+      setIsError(true);
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
-  const updateCourse = useCallback((id: string, updates: Partial<Course>) => {
-    setCourses((prev) =>
-      prev.map((c) => (c.id === id ? { ...c, ...updates } : c))
-    );
+  // Fetch initial data from Backend
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
+
+  // Persist CurrentUser Login locally so refresh doesn't drop auth
+  useEffect(() => { 
+    if (currentUser) localStorage.setItem("iq_hub_user", JSON.stringify(currentUser));
+    else localStorage.removeItem("iq_hub_user");
+  }, [currentUser]);
+
+  // ── Auth Logic ─────────────────────────────────────────────
+  const login = useCallback(async (email: string, password?: string, role: string = "student") => {
+    if (email === "admin@iqeducationhub.com" && password === "admin123") {
+      const user: User = { id: "admin-1", email, role: "admin", name: "Master Admin" };
+      setCurrentUser(user);
+      return user;
+    }
+
+    try {
+      const res = await axios.post(`${API_URL}/auth/login`, { email, password, role });
+      const userData = res.data;
+      const user: User = { id: userData._id || userData.id, email: userData.email, role: userData.role, name: userData.name };
+      setCurrentUser(user);
+      return user;
+    } catch (e) {
+      toast.error("Invalid credentials or server error");
+      return null;
+    }
   }, []);
 
-  const deleteCourse = useCallback((id: string) => {
-    setCourses((prev) => prev.filter((c) => c.id !== id));
+  const logout = useCallback(() => {
+    setCurrentUser(null);
   }, []);
 
-  // ── Teacher CRUD ────────────────────────────────────────────
-  const addTeacher = useCallback((teacher: Omit<Teacher, "id">) => {
-    const newTeacher: Teacher = { ...teacher, id: crypto.randomUUID() };
-    setTeachers((prev) => [...prev, newTeacher]);
+  // ── Course CRUD (REST) ──────────────────────────────────────
+  const addCourse = useCallback(async (course: Omit<Course, "id">) => {
+    try {
+      const res = await axios.post(`${API_URL}/courses`, course);
+      setCourses(prev => [...prev, { ...res.data, id: res.data._id }]);
+    } catch (e) { toast.error("Database connection failed!"); }
   }, []);
 
-  const updateTeacher = useCallback((id: string, updates: Partial<Teacher>) => {
-    setTeachers((prev) =>
-      prev.map((t) => (t.id === id ? { ...t, ...updates } : t))
-    );
+  const updateCourse = useCallback(async (id: string, updates: Partial<Course>) => {
+    try {
+      await axios.put(`${API_URL}/courses/${id}`, updates);
+      setCourses(prev => prev.map(c => (c.id === id ? { ...c, ...updates } : c)));
+    } catch (e) { toast.error("Database connection failed!"); }
   }, []);
 
-  const deleteTeacher = useCallback((id: string) => {
-    setTeachers((prev) => prev.filter((t) => t.id !== id));
+  const deleteCourse = useCallback(async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/courses/${id}`);
+      setCourses(prev => prev.filter(c => c.id !== id));
+    } catch (e) { toast.error("Database connection failed!"); }
   }, []);
 
-  // ── Student CRUD ────────────────────────────────────────────
-  const deleteStudent = useCallback((id: string) => {
-    setStudents((prev) => prev.filter((s) => s.id !== id));
+  // ── Teacher CRUD (REST) ──────────────────────────────────────
+  const addTeacher = useCallback(async (teacher: Omit<Teacher, "id">) => {
+    try {
+      const res = await axios.post(`${API_URL}/teachers`, teacher);
+      setTeachers(prev => [...prev, { ...res.data, id: res.data._id }]);
+    } catch (e) { toast.error("Database connection failed!"); }
+  }, []);
+
+  const updateTeacher = useCallback(async (id: string, updates: Partial<Teacher>) => {
+    try {
+      await axios.put(`${API_URL}/teachers/${id}`, updates);
+      setTeachers(prev => prev.map(t => (t.id === id ? { ...t, ...updates } : t)));
+    } catch (e) { toast.error("Database connection failed!"); }
+  }, []);
+
+  const deleteTeacher = useCallback(async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/teachers/${id}`);
+      setTeachers(prev => prev.filter(t => t.id !== id));
+    } catch (e) { toast.error("Database connection failed!"); }
+  }, []);
+
+  // ── Blog CRUD (REST) ─────────────────────────────────────────
+  const addBlog = useCallback(async (blog: Omit<Blog, "id" | "date" | "slug">) => {
+    try {
+      const res = await axios.post(`${API_URL}/blogs`, blog);
+      setBlogs(prev => [{ ...res.data, id: res.data._id }, ...prev]);
+    } catch (e) { toast.error("Database connection failed!"); }
+  }, []);
+
+  const deleteBlog = useCallback(async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/blogs/${id}`);
+      setBlogs(prev => prev.filter(b => b.id !== id));
+    } catch (e) { toast.error("Database connection failed!"); }
+  }, []);
+
+  // ── Registration CRUD ─────────────────────────────────
+  const register = useCallback(async (userData: any) => {
+    try {
+      // Register via Auth endpoint
+      const res = await axios.post(`${API_URL}/auth/register`, userData);
+      const registeredUser = res.data;
+      
+      // Refresh all data to ensure new user shows up in Admin dashboard
+      await fetchData();
+
+      const user: User = { 
+        id: registeredUser._id || registeredUser.id, 
+        email: registeredUser.email, 
+        role: registeredUser.role, 
+        name: registeredUser.name 
+      };
+      
+      setCurrentUser(user);
+      return user;
+    } catch (e: any) {
+      const errorMsg = e.response?.data?.message || "Registration failed!";
+      toast.error(errorMsg);
+      return null;
+    }
+  }, [fetchData]);
+
+  const updateStudent = useCallback(async (id: string, updates: Partial<Student>) => {
+    try {
+      await axios.put(`${API_URL}/students/${id}`, updates);
+      setStudents(prev => prev.map(s => (s.id === id ? { ...s, ...updates } : s)));
+    } catch (e) { toast.error("Update failed!"); }
+  }, []);
+
+  const deleteStudent = useCallback(async (id: string) => {
+    try {
+      await axios.delete(`${API_URL}/students/${id}`);
+      setStudents(prev => prev.filter(s => s.id !== id));
+    } catch (e) { toast.error("Delete failed!"); }
   }, []);
 
   return (
     <DataContext.Provider
       value={{
-        courses,
-        teachers,
-        students,
-        addCourse,
-        updateCourse,
-        deleteCourse,
-        addTeacher,
-        updateTeacher,
-        deleteTeacher,
-        deleteStudent,
+        currentUser, login, logout,
+        courses, teachers, students, blogs,
+        isLoading, isError, refreshData: fetchData,
+        addCourse, updateCourse, deleteCourse,
+        addTeacher, updateTeacher, deleteTeacher,
+        register, updateStudent, deleteStudent,
+        addBlog, deleteBlog,
       }}
     >
       {children}
@@ -150,7 +277,6 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   );
 };
 
-// ── Hook ────────────────────────────────────────────────────────
 export const useData = (): DataContextType => {
   const ctx = useContext(DataContext);
   if (!ctx) throw new Error("useData must be used within a <DataProvider>");

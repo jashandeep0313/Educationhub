@@ -50,15 +50,16 @@ import { useData } from "@/context/DataContext";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { courses: allCourses, teachers: allTeachers, students, addCourse, updateCourse, deleteCourse, addTeacher, updateTeacher, deleteTeacher, deleteStudent } = useData();
+  const { courses: allCourses, teachers: allTeachers, students, blogs, addCourse, updateCourse, deleteCourse, addTeacher, updateTeacher, deleteTeacher, deleteStudent, addBlog, deleteBlog } = useData();
   const [searchQuery, setSearchQuery] = useState("");
-  const [viewMode, setViewMode] = useState<"students" | "courses" | "teachers">(
+  const [viewMode, setViewMode] = useState<"students" | "courses" | "teachers" | "blogs">(
     "students"
   );
 
   // Modal States
   const [isAddingCourse, setIsAddingCourse] = useState(false);
   const [isAddingTeacher, setIsAddingTeacher] = useState(false);
+  const [isAddingBlog, setIsAddingBlog] = useState(false);
   const [isSyncing, setIsSyncing] = useState(false);
   
   // Selected Data for Viewing/Editing
@@ -73,6 +74,7 @@ const AdminDashboard = () => {
   // Add Forms State
   const [newCourseData, setNewCourseData] = useState({ title: "", category: "", description: "", image: "", price: "" });
   const [newTeacherData, setNewTeacherData] = useState({ name: "", role: "", image: "", phone: "", email: "", address: "", experience: "", studentsHandled: "" });
+  const [newBlogData, setNewBlogData] = useState({ title: "", category: "", summary: "", image: "", achievement: false });
 
   const handleLogout = () => {
     toast.success("Logged out successfully");
@@ -86,54 +88,114 @@ const AdminDashboard = () => {
   // Submit Handlers
   const handleCourseSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newCourseData.title || !newCourseData.category || !newCourseData.price) {
+      toast.error("Please fill in all required fields!");
+      return;
+    }
+    
     setIsSyncing(true);
-    // Brief delay for visual feedback
-    await new Promise((r) => setTimeout(r, 800));
-    addCourse({
-      title: newCourseData.title,
-      category: newCourseData.category,
-      description: newCourseData.description,
-      image: newCourseData.image || "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?w=600&h=400&fit=crop",
-      price: Number(newCourseData.price) || 0,
-      rating: 5.0,
-      students: 0,
-      duration: "Variable",
-      features: []
-    });
-    setIsSyncing(false);
-    toast.success("Successfully Published & Synced to Homepage!");
-    setIsAddingCourse(false);
-    setNewCourseData({ title: "", category: "", description: "", image: "", price: "" });
+    
+    setTimeout(() => {
+      try {
+        addCourse({
+          title: newCourseData.title,
+          category: newCourseData.category,
+          description: newCourseData.description,
+          image: newCourseData.image || "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?w=600&h=400&fit=crop",
+          price: Number(newCourseData.price) || 0,
+          rating: 5.0,
+          students: 0,
+          duration: "Variable",
+          features: []
+        });
+        
+        toast.success("Successfully Published & Synced to Homepage!");
+        setIsAddingCourse(false);
+        setNewCourseData({ title: "", category: "", description: "", image: "", price: "" });
+      } catch (error) {
+        console.error("Error adding course:", error);
+        toast.error("Failed to publish course. Please try again.");
+      } finally {
+        setIsSyncing(false);
+      }
+    }, 800);
   };
 
   const handleTeacherSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!newTeacherData.name || !newTeacherData.role) {
+      toast.error("Please provide both the Name and Role of the teacher!");
+      return;
+    }
+    
     setIsSyncing(true);
-    await new Promise((r) => setTimeout(r, 800));
-    addTeacher({
-      name: newTeacherData.name,
-      role: newTeacherData.role,
-      image: newTeacherData.image || "/images/photo.jpg",
-      experience: newTeacherData.experience || "0 Years",
-      students: Number(newTeacherData.studentsHandled) || 0,
-      rating: 5.0,
-      bio: "Newly onboarded faculty member.",
-      phone: newTeacherData.phone || "N/A",
-      email: newTeacherData.email || "N/A",
-      address: newTeacherData.address || "N/A"
-    });
-    setIsSyncing(false);
-    toast.success("Successfully Published & Synced to Homepage!");
-    setIsAddingTeacher(false);
-    setNewTeacherData({ name: "", role: "", image: "", phone: "", email: "", address: "", experience: "", studentsHandled: "" });
+    
+    setTimeout(() => {
+      try {
+        addTeacher({
+          name: newTeacherData.name,
+          role: newTeacherData.role,
+          image: newTeacherData.image || "/images/photo.jpg",
+          experience: newTeacherData.experience || "0 Years",
+          students: Number(newTeacherData.studentsHandled) || 0,
+          rating: 5.0,
+          bio: "Newly onboarded faculty member.",
+          phone: newTeacherData.phone || "N/A",
+          email: newTeacherData.email || "N/A",
+          address: newTeacherData.address || "N/A"
+        });
+        
+        toast.success("Successfully Published & Synced to Homepage!");
+        setIsAddingTeacher(false);
+        setNewTeacherData({ name: "", role: "", image: "", phone: "", email: "", address: "", experience: "", studentsHandled: "" });
+      } catch (error) {
+        console.error("Error adding teacher:", error);
+        toast.error("Failed to onboard teacher. Please try again.");
+      } finally {
+        setIsSyncing(false);
+      }
+    }, 800);
+  };
+
+  const handleBlogSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBlogData.title || !newBlogData.summary) {
+      toast.error("Please fill in required fields!");
+      return;
+    }
+    setIsSyncing(true);
+    
+    setTimeout(() => {
+      try {
+        addBlog({
+          title: newBlogData.title,
+          category: newBlogData.category || "General",
+          summary: newBlogData.summary,
+          image: newBlogData.image || "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?w=600&h=400&fit=crop",
+          achievement: newBlogData.achievement
+        });
+        toast.success("Successfully Published Blog!");
+        setIsAddingBlog(false);
+        setNewBlogData({ title: "", category: "", summary: "", image: "", achievement: false });
+      } catch (error) {
+        console.error("Error adding blog:", error);
+        toast.error("Failed to publish blog.");
+      } finally {
+        setIsSyncing(false);
+      }
+    }, 800);
   };
 
   // Edit/Delete Handlers
   const handleUpdateCoursePrice = () => {
     if (!selectedCourse) return;
-    updateCourse(selectedCourse.id, { price: Number(editPrice) || 0 });
-    setSelectedCourse({ ...selectedCourse, price: Number(editPrice) || 0 });
-    toast.success("Course price updated & synced!");
+    setIsSyncing(true);
+    setTimeout(() => {
+      updateCourse(selectedCourse.id, { price: Number(editPrice) || 0 });
+      setSelectedCourse({ ...selectedCourse, price: Number(editPrice) || 0 });
+      toast.success("Course price updated & synced!");
+      setIsSyncing(false);
+    }, 600);
   };
 
   const handleDeleteCourse = (id: string) => {
@@ -156,9 +218,19 @@ const AdminDashboard = () => {
 
   const handleUpdateTeacher = () => {
     if (!selectedTeacher || !editTeacherData) return;
-    updateTeacher(selectedTeacher.id, editTeacherData);
-    setSelectedTeacher({ ...selectedTeacher, ...editTeacherData });
-    toast.success("Faculty details updated & synced!");
+    setIsSyncing(true);
+    setTimeout(() => {
+      updateTeacher(selectedTeacher.id, editTeacherData);
+      setSelectedTeacher({ ...selectedTeacher, ...editTeacherData });
+      toast.success("Faculty details updated & synced!");
+      setIsSyncing(false);
+    }, 600);
+  };
+
+  const handleDeleteBlog = (id: string) => {
+    if(!confirm("Are you sure you want to delete this post?")) return;
+    deleteBlog(id);
+    toast.success("Blog deleted successfully!");
   };
 
   return (
@@ -278,6 +350,15 @@ const AdminDashboard = () => {
               >
                 <UserCheck className="w-4 h-4" /> Faculty Directory
               </Button>
+              <Button
+                className={`w-full justify-start gap-2 ${
+                  viewMode === "blogs" ? "bg-primary text-white" : ""
+                }`}
+                variant={viewMode === "blogs" ? "default" : "outline"}
+                onClick={() => setViewMode("blogs")}
+              >
+                <FileText className="w-4 h-4" /> Manage Blogs
+              </Button>
               <hr className="my-2 border-border" />
               <Button
                 className="w-full justify-start gap-2 text-primary border-primary/20 hover:bg-primary/5"
@@ -293,6 +374,13 @@ const AdminDashboard = () => {
               >
                 <Plus className="w-4 h-4" /> Add New Teacher
               </Button>
+              <Button
+                className="w-full justify-start gap-2 text-primary border-primary/20 hover:bg-primary/5"
+                variant="outline"
+                onClick={() => setIsAddingBlog(true)}
+              >
+                <Plus className="w-4 h-4" /> Add New Blog Post
+              </Button>
             </div>
           </div>
 
@@ -306,7 +394,9 @@ const AdminDashboard = () => {
                       ? "Student Records"
                       : viewMode === "courses"
                       ? "Course Catalog"
-                      : "Faculty List"}
+                      : viewMode === "teachers"
+                      ? "Faculty List"
+                      : "Blog Posts & Achievements"}
                   </CardTitle>
                   <CardDescription>
                     Managing entries for your IQ Education Hub platform.
@@ -346,6 +436,14 @@ const AdminDashboard = () => {
                         <TableHead>Teacher Name</TableHead>
                         <TableHead>Role</TableHead>
                         <TableHead>Students</TableHead>
+                        <TableHead className="text-right">Actions</TableHead>
+                      </TableRow>
+                    )}
+                    {viewMode === "blogs" && (
+                      <TableRow>
+                        <TableHead>Title</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Date</TableHead>
                         <TableHead className="text-right">Actions</TableHead>
                       </TableRow>
                     )}
@@ -416,6 +514,24 @@ const AdminDashboard = () => {
                               <Edit className="w-4 h-4 mr-2" /> Details & Edit
                             </Button>
                             <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteTeacher(t.id)}>
+                              <Trash2 className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    {viewMode === "blogs" &&
+                      blogs
+                        .filter(b => b.title.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map((b) => (
+                        <TableRow key={b.id}>
+                          <TableCell className="font-medium max-w-[200px] truncate">
+                            {b.achievement && <Award className="inline-block w-4 h-4 text-warning mr-1" />}
+                            {b.title}
+                          </TableCell>
+                          <TableCell><Badge variant="outline">{b.category}</Badge></TableCell>
+                          <TableCell>{b.date}</TableCell>
+                          <TableCell className="text-right flex items-center justify-end gap-2">
+                            <Button variant="ghost" size="icon" className="text-destructive hover:bg-destructive/10" onClick={() => handleDeleteBlog(b.id)}>
                               <Trash2 className="w-4 h-4" />
                             </Button>
                           </TableCell>
@@ -630,7 +746,9 @@ const AdminDashboard = () => {
                         value={editPrice} 
                         onChange={(e) => setEditPrice(e.target.value)} 
                       />
-                      <Button onClick={handleUpdateCoursePrice}>Save Price</Button>
+                      <Button onClick={handleUpdateCoursePrice} disabled={isSyncing}>
+                        {isSyncing ? <Loader2 className="w-4 h-4 animate-spin" /> : "Save Price"}
+                      </Button>
                     </div>
                   </div>
                 </div>
@@ -684,8 +802,65 @@ const AdminDashboard = () => {
                     <Input type="number" value={editTeacherData.students} onChange={e => setEditTeacherData({...editTeacherData, students: Number(e.target.value)})} />
                   </div>
                 </div>
-                <Button className="w-full mt-2" onClick={handleUpdateTeacher}>Save Changes</Button>
+                <Button className="w-full mt-2" onClick={handleUpdateTeacher} disabled={isSyncing}>
+                  {isSyncing ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+                  Save Changes
+                </Button>
               </div>
+            </motion.div>
+          </div>
+        )}
+
+        {/* ADD BLOG MODAL */}
+        {isAddingBlog && (
+          <div className="fixed inset-0 z-[100] bg-background/80 backdrop-blur-sm flex items-center justify-center p-4">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="bg-card border shadow-2xl rounded-2xl max-w-lg w-full p-6 relative overflow-y-auto max-h-[90vh]"
+            >
+              <button className="absolute right-4 top-4 text-muted-foreground hover:text-foreground" onClick={() => setIsAddingBlog(false)}>
+                <X className="w-5 h-5" />
+              </button>
+              <h2 className="text-xl font-bold mb-4">Publish New Blog Post</h2>
+              <form className="space-y-4" onSubmit={handleBlogSubmit}>
+                <div className="grid gap-4">
+                  <div className="space-y-1">
+                    <Label>Blog Title *</Label>
+                    <Input required value={newBlogData.title} onChange={e => setNewBlogData({...newBlogData, title: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Category</Label>
+                    <Input placeholder="e.g. Tips, News, Success Story" required value={newBlogData.category} onChange={e => setNewBlogData({...newBlogData, category: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Summary / Content *</Label>
+                    <Textarea placeholder="Enter blog content summary..." required value={newBlogData.summary} onChange={e => setNewBlogData({...newBlogData, summary: e.target.value})} />
+                  </div>
+                  <div className="space-y-1">
+                    <Label>Cover Image URL (Optional)</Label>
+                    <Input placeholder="https://..." value={newBlogData.image} onChange={e => setNewBlogData({...newBlogData, image: e.target.value})} />
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <input 
+                      type="checkbox" 
+                      id="achievementCheck"
+                      checked={newBlogData.achievement}
+                      onChange={e => setNewBlogData({...newBlogData, achievement: e.target.checked})}
+                      className="w-4 h-4 rounded border-input text-primary focus:ring-primary"
+                    />
+                    <Label>Mark this post as an Achievement (will display special badges)</Label>
+                  </div>
+                </div>
+                <Button className="w-full mt-4 gap-2" disabled={isSyncing}>
+                  {isSyncing ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Publishing...</>
+                  ) : (
+                    "Publish Blog Post"
+                  )}
+                </Button>
+              </form>
             </motion.div>
           </div>
         )}

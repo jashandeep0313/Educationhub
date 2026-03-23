@@ -6,9 +6,11 @@ import { Link } from "react-router-dom";
 import { stats, courses } from "@/lib/data";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
+import EnquireModal from "@/components/modals/EnquireModal";
 
 const HeroSection = () => {
   const [showAllCourses, setShowAllCourses] = useState(false);
+  const [enquireCourseId, setEnquireCourseId] = useState<string | null>(null);
 
   return (
     <section className="relative min-h-screen flex items-center pt-20 overflow-hidden">
@@ -184,7 +186,7 @@ const HeroSection = () => {
                         </div>
                         <div className="flex items-center justify-between border-t pt-4">
                           <span className="text-xl font-bold text-primary">₹{course.price.toLocaleString()}</span>
-                          <Button size="sm" onClick={() => setShowAllCourses(false)}>Enquire</Button>
+                          <Button size="sm" onClick={() => { setEnquireCourseId(course.id); setShowAllCourses(false); }}>Enquire</Button>
                         </div>
                       </div>
                     </div>
@@ -195,6 +197,11 @@ const HeroSection = () => {
           </motion.div>
         )}
       </AnimatePresence>
+      <EnquireModal 
+        isOpen={!!enquireCourseId} 
+        onClose={() => setEnquireCourseId(null)} 
+        courseId={enquireCourseId || undefined} 
+      />
     </section>
   );
 };

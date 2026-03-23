@@ -26,23 +26,107 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 // LINKED DATA: Importing your 1st code exports
-import { sampleStudents, instituteInfo, courses } from "@/lib/data";
-
-// Using the student data from your 1st code
-const currentStudent = sampleStudents[1]; // Manpreet Kaur
+import { instituteInfo, courses } from "@/lib/data";
+import { useData } from "@/context/DataContext";
 
 const StudentDashboard = () => {
   const navigate = useNavigate();
+  const { currentUser, students, logout, isLoading, isError, refreshData } = useData();
+  
+  const currentStudent = students.find((s) => s.id === currentUser?.id);
+
+  useEffect(() => {
+    if (!currentUser || currentUser.role !== "student" || !currentStudent) {
+      if (!currentUser) navigate("/portal-login");
+    }
+  }, [currentUser, navigate, currentStudent]);
+
   const [notifications, setNotifications] = useState<
     { id: string; message: string; type: "warning" | "info" | "success" }[]
   >([]);
+
+  const handleLogout = () => {
+    logout();
+    toast.success("Logged out successfully");
+    navigate("/portal-login");
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="text-center animate-pulse">
+           <GraduationCap className="w-12 h-12 mx-auto mb-4 text-primary" />
+           <p className="text-muted-foreground">Loading Student Portal...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Card className="max-w-md w-full mx-4">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <AlertTriangle className="w-8 h-8 text-destructive" />
+            </div>
+            <CardTitle>Connection Error</CardTitle>
+            <CardDescription>
+              We couldn't connect to the server. Please check if the backend is running and try again.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex justify-center gap-4">
+            <Button onClick={() => refreshData()} className="gap-2">
+              <Clock className="w-4 h-4" /> Retry Connection
+            </Button>
+            <Button variant="outline" onClick={handleLogout}>
+              Logout
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  if (!currentStudent) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="max-w-md w-full">
+          <CardHeader className="text-center">
+            <div className="w-16 h-16 bg-warning/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <User className="w-8 h-8 text-warning" />
+            </div>
+            <CardTitle>Profile Not Found</CardTitle>
+            <CardDescription>
+              We couldn't find a student profile associated with your account ({currentUser?.email}).
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4 text-center">
+            <p className="text-sm text-muted-foreground">
+              If you just registered, please wait a moment or try refreshing. If the problem persists, contact support.
+            </p>
+            <div className="flex justify-center gap-4">
+              <Button onClick={() => refreshData()} variant="outline">
+                Refresh Data
+              </Button>
+              <Button onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   // Find the specific course details from the courses array
   const courseDetails = courses.find((c) => c.title === currentStudent.course);
 
   const daysUntilDue = () => {
+    if (!currentStudent.nextDueDate) return 0;
     const today = new Date();
     const dueDate = new Date(currentStudent.nextDueDate);
+    if (isNaN(dueDate.getTime())) return 0;
     const diffTime = dueDate.getTime() - today.getTime();
     return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
   };
@@ -62,7 +146,7 @@ const StudentDashboard = () => {
         message: `Fee payment reminder: ₹${currentStudent.feeAmount.toLocaleString()} due in ${days} days.`,
         type: "info" as const,
       });
-    } else if (currentStudent.feeStatus === "paid") {
+    } else if (currentStudent.feeStatus === "paid" && currentStudent.nextDueDate) {
       newNotifications.push({
         id: "3",
         message: `Your fee for this month is paid. Next due: ${new Date(
@@ -72,12 +156,9 @@ const StudentDashboard = () => {
       });
     }
     setNotifications(newNotifications);
-  }, []);
+  }, [currentStudent]);
 
-  const handleLogout = () => {
-    toast.success("Logged out successfully");
-    navigate("/student-login");
-  };
+  // handleLogout moved up to fix scoping
 
   const getFeeStatusColor = (status: string) => {
     switch (status) {
