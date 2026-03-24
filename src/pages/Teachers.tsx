@@ -37,22 +37,30 @@ const Teachers = () => {
                   transition={{ delay: index * 0.1 }}
                 >
                   <Card className="h-full card-hover overflow-hidden flex flex-col border-border shadow-md">
-                    <CardHeader className="p-0">
-                      <div className="relative aspect-square bg-muted">
-                        <img
-                          src={teacher.image}
-                          alt={teacher.name}
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                        />
-                        <div className="absolute top-3 left-3">
-                          <Badge variant="secondary" className="bg-background/80 backdrop-blur-md">
-                            {teacher.role}
-                          </Badge>
+                    {teacher.image && teacher.image.trim() !== "" && (
+                      <CardHeader className="p-0 shrink-0">
+                        <div className="relative aspect-square w-full bg-muted overflow-hidden">
+                          <img
+                            src={teacher.image}
+                            alt={teacher.name}
+                            className="w-full h-full object-cover object-center transition-all duration-500 hover:scale-105 opacity-0"
+                            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                          />
+                          <div className="absolute top-3 left-3">
+                            <Badge variant="secondary" className="bg-background/80 backdrop-blur-md shadow-sm">
+                              {teacher.role}
+                            </Badge>
+                          </div>
                         </div>
-                      </div>
-                    </CardHeader>
+                      </CardHeader>
+                    )}
 
-                    <CardContent className="p-5 flex-1 flex flex-col">
+                    <CardContent className={`p-5 flex-1 flex flex-col ${(!teacher.image || teacher.image.trim() === "") ? 'pt-6' : ''}`}>
+                      {(!teacher.image || teacher.image.trim() === "") && (
+                        <Badge variant="secondary" className="w-fit mb-2">
+                          {teacher.role}
+                        </Badge>
+                      )}
                       <h2 className="font-heading font-bold text-xl mb-2">
                         {teacher.name}
                       </h2>

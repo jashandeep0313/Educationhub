@@ -2,11 +2,13 @@ require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+const compression = require('compression');
 
 const app = express();
 
 // Middleware
 app.use(cors());
+app.use(compression()); // Compress all responses to improve latency
 app.use(express.json()); // Parses incoming JSON requests
 
 // Routes Setup
@@ -15,6 +17,11 @@ const courseRoutes = require('./routes/courses');
 const teacherRoutes = require('./routes/teachers');
 const blogRoutes = require('./routes/blogs');
 const studentRoutes = require('./routes/students');
+const uploadRoutes = require('./routes/upload');
+const path = require('path');
+
+// Static File Serving
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Basic Health Check Route
 app.get('/api/health', (req, res) => {
@@ -27,6 +34,7 @@ app.use('/api/courses', courseRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/upload', uploadRoutes);
 
 // Port configuration
 const PORT = process.env.PORT || 5000;

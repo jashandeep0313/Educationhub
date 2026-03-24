@@ -57,30 +57,51 @@ const BlogSection = ({ preview = false }: BlogSectionProps) => {
             >
               <Card className="h-full card-hover overflow-hidden flex flex-col">
                 {/* Thumbnail */}
-                <div className="relative aspect-video overflow-hidden bg-muted">
-                  <img
-                    src={post.image}
-                    alt={post.title}
-                    className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                  <div className="absolute top-3 left-3 flex gap-2">
-                    <span
-                      className={`text-xs font-semibold px-3 py-1 rounded-full ${
-                        categoryColor[post.category] ??
-                        "bg-secondary text-secondary-foreground"
-                      }`}
-                    >
-                      {post.category}
-                    </span>
-                    {post.achievement && (
-                      <span className="bg-warning text-warning-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
-                        <Award className="w-3 h-3" /> Achievement
+                {post.image && post.image.trim() !== "" && (
+                  <div className="relative w-full h-[200px] overflow-hidden bg-muted shrink-0">
+                    <img
+                      src={post.image}
+                      alt={post.title}
+                      className="w-full h-full object-cover object-center transition-all duration-500 hover:scale-105 opacity-0"
+                      onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                    />
+                    <div className="absolute top-3 left-3 flex gap-2">
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full shadow-sm backdrop-blur-md ${
+                          categoryColor[post.category] ??
+                          "bg-secondary/90 text-secondary-foreground"
+                        }`}
+                      >
+                        {post.category}
                       </span>
-                    )}
+                      {post.achievement && (
+                        <span className="bg-warning text-warning-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md backdrop-blur-md">
+                          <Award className="w-3 h-3" /> Achievement
+                        </span>
+                      )}
+                    </div>
                   </div>
-                </div>
+                )}
 
-                <CardContent className="p-5 flex flex-col gap-3 flex-1">
+                <CardContent className={`p-5 flex flex-col gap-3 flex-1 ${(!post.image || post.image.trim() === "") ? 'pt-6' : ''}`}>
+                  {/* Badges for No Image */}
+                  {(!post.image || post.image.trim() === "") && (
+                    <div className="flex gap-2">
+                      <span
+                        className={`text-xs font-semibold px-3 py-1 rounded-full ${
+                          categoryColor[post.category] ??
+                          "bg-secondary text-secondary-foreground"
+                        }`}
+                      >
+                        {post.category}
+                      </span>
+                      {post.achievement && (
+                        <span className="bg-warning text-warning-foreground text-xs font-semibold px-3 py-1 rounded-full flex items-center gap-1 shadow-md">
+                          <Award className="w-3 h-3" /> Achievement
+                        </span>
+                      )}
+                    </div>
+                  )}
                   {/* Date */}
                   <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                     <CalendarDays className="w-3.5 h-3.5" />

@@ -103,9 +103,28 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isError, setIsError] = useState(false);
 
   const fetchData = useCallback(async () => {
-    setIsLoading(true);
-    setIsError(false);
+    // 1. Check for cached data (Stale-While-Revalidate pattern for better latency)
+    const cachedCourses = sessionStorage.getItem("iq_courses");
+    const cachedTeachers = sessionStorage.getItem("iq_teachers");
+    const cachedBlogs = sessionStorage.getItem("iq_blogs");
+    const cachedStudents = sessionStorage.getItem("iq_students");
+    
+    let hasCache = false;
+
+    if (cachedCourses && cachedTeachers && cachedBlogs && cachedStudents) {
+      setCourses(JSON.parse(cachedCourses));
+      setTeachers(JSON.parse(cachedTeachers));
+      setBlogs(JSON.parse(cachedBlogs));
+      setStudents(JSON.parse(cachedStudents));
+      setIsLoading(false);
+      setIsError(false);
+      hasCache = true;
+    } else {
+      setIsLoading(true);
+    }
+
     try {
+      // 2. Fetch fresh data in the background
       const [courseRes, teacherRes, blogRes, studentRes] = await Promise.all([
         axios.get(`${API_URL}/courses`),
         axios.get(`${API_URL}/teachers`),
@@ -113,14 +132,26 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         axios.get(`${API_URL}/students`)
       ]);
       
-      setCourses(normalizeData(courseRes.data));
-      setTeachers(normalizeData(teacherRes.data));
-      setBlogs(normalizeData(blogRes.data));
-      setStudents(normalizeData(studentRes.data));
+      const freshCourses = normalizeData(courseRes.data);
+      const freshTeachers = normalizeData(teacherRes.data);
+      const freshBlogs = normalizeData(blogRes.data);
+      const freshStudents = normalizeData(studentRes.data);
+
+      setCourses(freshCourses);
+      setTeachers(freshTeachers);
+      setBlogs(freshBlogs);
+      setStudents(freshStudents);
+      
+      // Update Cache
+      sessionStorage.setItem("iq_courses", JSON.stringify(freshCourses));
+      sessionStorage.setItem("iq_teachers", JSON.stringify(freshTeachers));
+      sessionStorage.setItem("iq_blogs", JSON.stringify(freshBlogs));
+      sessionStorage.setItem("iq_students", JSON.stringify(freshStudents));
+      
       setIsError(false);
     } catch (error) {
       console.error("Failed to fetch Node API data:", error);
-      setIsError(true);
+      if (!hasCache) setIsError(true); // Only show error state if we have no cached data
     } finally {
       setIsLoading(false);
     }

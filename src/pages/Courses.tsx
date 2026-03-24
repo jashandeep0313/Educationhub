@@ -48,26 +48,39 @@ const Courses = () => {
                 >
                   <Card className="h-full card-hover overflow-hidden flex flex-col">
                     {/* Image */}
-                    <CardHeader className="p-0">
-                      <div className="relative aspect-video bg-muted overflow-hidden">
-                        <img
-                          src={course.image}
-                          alt={course.title}
-                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
-                        />
+                    {course.image && course.image.trim() !== "" && (
+                      <CardHeader className="p-0">
+                        <div className="relative w-full h-[200px] bg-muted overflow-hidden">
+                          <img
+                            src={course.image}
+                            alt={course.title}
+                            className="w-full h-full object-cover object-center transition-all duration-500 hover:scale-105 opacity-0"
+                            onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                          />
+                          <span
+                            className={`absolute top-3 left-3 text-xs font-semibold px-3 py-1 rounded-full shadow-sm backdrop-blur-md ${
+                              categoryColors[course.category] ??
+                              "bg-secondary/90 text-secondary-foreground"
+                            }`}
+                          >
+                            {course.category}
+                          </span>
+                        </div>
+                      </CardHeader>
+                    )}
+
+                    {/* Content */}
+                    <CardContent className={`p-5 flex-1 space-y-3 ${(!course.image || course.image.trim() === "") ? 'pt-6' : ''}`}>
+                      {(!course.image || course.image.trim() === "") && (
                         <span
-                          className={`absolute top-3 left-3 text-xs font-semibold px-3 py-1 rounded-full ${
+                          className={`inline-block text-xs font-semibold px-3 py-1 rounded-full mb-1 ${
                             categoryColors[course.category] ??
                             "bg-secondary text-secondary-foreground"
                           }`}
                         >
                           {course.category}
                         </span>
-                      </div>
-                    </CardHeader>
-
-                    {/* Content */}
-                    <CardContent className="p-5 flex-1 space-y-3">
+                      )}
                       <h2 className="font-heading font-bold text-lg leading-snug">
                         {course.title}
                       </h2>

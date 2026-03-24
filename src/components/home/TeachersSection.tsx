@@ -77,22 +77,32 @@ const TeachersSection = () => {
                     index === 1 ? "" : "hidden md:block"
                   }`}
                 >
-                  <div className="bg-card rounded-2xl shadow-lg overflow-hidden border border-border">
-                    <div className="relative aspect-square bg-muted">
-                      <img
-                        src={teacher.image}
-                        alt={teacher.name}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-transparent to-transparent" />
-                      <div className="absolute bottom-4 left-4 right-4">
-                        <h3 className="font-heading font-bold text-xl text-background">
+                  <div className="bg-card rounded-2xl shadow-lg overflow-hidden border border-border flex flex-col h-full">
+                    {teacher.image && teacher.image.trim() !== "" ? (
+                      <div className="relative aspect-square bg-muted shrink-0">
+                        <img
+                          src={teacher.image}
+                          alt={teacher.name}
+                          className="w-full h-full object-cover object-center transition-opacity duration-500 opacity-0"
+                          onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                        />
+                        <div className="absolute inset-0 bg-gradient-to-t from-foreground/80 via-transparent to-transparent pointer-events-none" />
+                        <div className="absolute bottom-4 left-4 right-4">
+                          <h3 className="font-heading font-bold text-xl text-background">
+                            {teacher.name}
+                          </h3>
+                          <p className="text-background/80">{teacher.role}</p>
+                        </div>
+                      </div>
+                    ) : (
+                      <div className="p-5 pb-0">
+                        <h3 className="font-heading font-bold text-xl text-foreground">
                           {teacher.name}
                         </h3>
-                        <p className="text-background/80">{teacher.role}</p>
+                        <p className="text-muted-foreground">{teacher.role}</p>
                       </div>
-                    </div>
-                    <div className="p-5 space-y-4">
+                    )}
+                    <div className="p-5 space-y-4 flex-1 flex flex-col justify-end">
                       <p className="text-sm text-muted-foreground line-clamp-2">
                         {teacher.bio}
                       </p>

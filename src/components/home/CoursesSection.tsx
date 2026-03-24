@@ -82,21 +82,29 @@ const CoursesSection = () => {
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -100 }}
                 transition={{ duration: 0.5 }}
-                className="grid md:grid-cols-2 gap-8 bg-card p-8 rounded-2xl shadow-lg"
+                className={`grid ${courses[currentIndex]?.image?.trim() ? 'md:grid-cols-2' : 'grid-cols-1'} gap-8 bg-card p-8 rounded-2xl shadow-lg`}
               >
-                <div className="relative aspect-video rounded-xl overflow-hidden bg-muted">
-                  <img
-                    src={courses[currentIndex].image}
-                    alt={courses[currentIndex].title}
-                    className="w-full h-full object-cover"
-                  />
-                  <div className="absolute top-4 left-4">
-                    <Badge className="bg-accent text-accent-foreground">
+                {courses[currentIndex]?.image && courses[currentIndex].image.trim() !== "" && (
+                  <div className="relative aspect-video rounded-xl overflow-hidden bg-muted">
+                    <img
+                      src={courses[currentIndex].image}
+                      alt={courses[currentIndex].title}
+                      className="w-full h-full object-cover object-center transition-opacity duration-500 opacity-0"
+                      onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                    />
+                    <div className="absolute top-4 left-4">
+                      <Badge className="bg-accent text-accent-foreground">
+                        {courses[currentIndex].category}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+                <div className="flex flex-col justify-center space-y-4">
+                  {(!courses[currentIndex]?.image || courses[currentIndex].image.trim() === "") && (
+                    <Badge className="w-fit bg-accent text-accent-foreground mb-1">
                       {courses[currentIndex].category}
                     </Badge>
-                  </div>
-                </div>
-                <div className="flex flex-col justify-center space-y-4">
+                  )}
                   <h3 className="font-heading text-2xl md:text-3xl font-bold">
                     {courses[currentIndex].title}
                   </h3>
@@ -181,20 +189,28 @@ const CoursesSection = () => {
               viewport={{ once: true }}
               transition={{ delay: index * 0.1 }}
             >
-              <Card className="h-full card-hover overflow-hidden">
-                <CardHeader className="p-0">
-                  <div className="relative aspect-video bg-muted">
-                    <img
-                      src={course.image}
-                      alt={course.title}
-                      className="w-full h-full object-cover"
-                    />
-                    <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
+              <Card className="h-full card-hover overflow-hidden flex flex-col">
+                {course.image && course.image.trim() !== "" && (
+                  <CardHeader className="p-0">
+                    <div className="relative w-full h-[200px] overflow-hidden bg-muted">
+                      <img
+                        src={course.image}
+                        alt={course.title}
+                        className="w-full h-full object-cover object-center transition-opacity duration-500 opacity-0"
+                        onLoad={(e) => e.currentTarget.classList.remove('opacity-0')}
+                      />
+                      <Badge className="absolute top-3 left-3 bg-accent text-accent-foreground">
+                        {course.category}
+                      </Badge>
+                    </div>
+                  </CardHeader>
+                )}
+                <CardContent className={`p-4 space-y-3 flex-1 ${(!course.image || course.image.trim() === "") ? 'pt-6' : ''}`}>
+                  {(!course.image || course.image.trim() === "") && (
+                    <Badge className="bg-accent text-accent-foreground w-fit mb-2">
                       {course.category}
                     </Badge>
-                  </div>
-                </CardHeader>
-                <CardContent className="p-4 space-y-3">
+                  )}
                   <h3 className="font-heading font-semibold line-clamp-1">
                     {course.title}
                   </h3>

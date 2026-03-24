@@ -44,6 +44,8 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { toast } from "sonner";
+import axios from "axios";
+import { ImageUpload } from "@/components/ui/ImageUpload";
 // Reference to your data structure
 import { instituteInfo } from "@/lib/data";
 import { useData } from "@/context/DataContext";
@@ -76,6 +78,11 @@ const AdminDashboard = () => {
   const [newTeacherData, setNewTeacherData] = useState({ name: "", role: "", image: "", phone: "", email: "", address: "", experience: "", studentsHandled: "" });
   const [newBlogData, setNewBlogData] = useState({ title: "", category: "", summary: "", image: "", achievement: false });
 
+  // Uploaded Image Files State
+  const [courseImageFile, setCourseImageFile] = useState<File | null>(null);
+  const [teacherImageFile, setTeacherImageFile] = useState<File | null>(null);
+  const [blogImageFile, setBlogImageFile] = useState<File | null>(null);
+
   const handleLogout = () => {
     toast.success("Logged out successfully");
     navigate("/admin-login");
@@ -95,30 +102,40 @@ const AdminDashboard = () => {
     
     setIsSyncing(true);
     
-    setTimeout(() => {
-      try {
-        addCourse({
-          title: newCourseData.title,
-          category: newCourseData.category,
-          description: newCourseData.description,
-          image: newCourseData.image || "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?w=600&h=400&fit=crop",
-          price: Number(newCourseData.price) || 0,
-          rating: 5.0,
-          students: 0,
-          duration: "Variable",
-          features: []
+    try {
+      let finalImageUrl = newCourseData.image || "";
+
+      if (courseImageFile) {
+        const formData = new FormData();
+        formData.append("image", courseImageFile);
+        const uploadRes = await axios.post("http://localhost:5000/api/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
         });
-        
-        toast.success("Successfully Published & Synced to Homepage!");
-        setIsAddingCourse(false);
-        setNewCourseData({ title: "", category: "", description: "", image: "", price: "" });
-      } catch (error) {
-        console.error("Error adding course:", error);
-        toast.error("Failed to publish course. Please try again.");
-      } finally {
-        setIsSyncing(false);
+        finalImageUrl = "http://localhost:5000" + uploadRes.data.url;
       }
-    }, 800);
+      
+      addCourse({
+        title: newCourseData.title,
+        category: newCourseData.category,
+        description: newCourseData.description,
+        image: finalImageUrl,
+        price: Number(newCourseData.price) || 0,
+        rating: 5.0,
+        students: 0,
+        duration: "Variable",
+        features: []
+      });
+      
+      toast.success("Successfully Published & Synced to Homepage!");
+      setIsAddingCourse(false);
+      setNewCourseData({ title: "", category: "", description: "", image: "", price: "" });
+      setCourseImageFile(null);
+    } catch (error) {
+      console.error("Error adding course:", error);
+      toast.error("Failed to publish course. Please try again.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleTeacherSubmit = async (e: React.FormEvent) => {
@@ -130,31 +147,41 @@ const AdminDashboard = () => {
     
     setIsSyncing(true);
     
-    setTimeout(() => {
-      try {
-        addTeacher({
-          name: newTeacherData.name,
-          role: newTeacherData.role,
-          image: newTeacherData.image || "/images/photo.jpg",
-          experience: newTeacherData.experience || "0 Years",
-          students: Number(newTeacherData.studentsHandled) || 0,
-          rating: 5.0,
-          bio: "Newly onboarded faculty member.",
-          phone: newTeacherData.phone || "N/A",
-          email: newTeacherData.email || "N/A",
-          address: newTeacherData.address || "N/A"
+    try {
+      let finalImageUrl = newTeacherData.image || "";
+
+      if (teacherImageFile) {
+        const formData = new FormData();
+        formData.append("image", teacherImageFile);
+        const uploadRes = await axios.post("http://localhost:5000/api/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
         });
-        
-        toast.success("Successfully Published & Synced to Homepage!");
-        setIsAddingTeacher(false);
-        setNewTeacherData({ name: "", role: "", image: "", phone: "", email: "", address: "", experience: "", studentsHandled: "" });
-      } catch (error) {
-        console.error("Error adding teacher:", error);
-        toast.error("Failed to onboard teacher. Please try again.");
-      } finally {
-        setIsSyncing(false);
+        finalImageUrl = "http://localhost:5000" + uploadRes.data.url;
       }
-    }, 800);
+      
+      addTeacher({
+        name: newTeacherData.name,
+        role: newTeacherData.role,
+        image: finalImageUrl,
+        experience: newTeacherData.experience || "0 Years",
+        students: Number(newTeacherData.studentsHandled) || 0,
+        rating: 5.0,
+        bio: "Newly onboarded faculty member.",
+        phone: newTeacherData.phone || "N/A",
+        email: newTeacherData.email || "N/A",
+        address: newTeacherData.address || "N/A"
+      });
+      
+      toast.success("Successfully Published & Synced to Homepage!");
+      setIsAddingTeacher(false);
+      setNewTeacherData({ name: "", role: "", image: "", phone: "", email: "", address: "", experience: "", studentsHandled: "" });
+      setTeacherImageFile(null);
+    } catch (error) {
+      console.error("Error adding teacher:", error);
+      toast.error("Failed to onboard teacher. Please try again.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleBlogSubmit = async (e: React.FormEvent) => {
@@ -165,25 +192,35 @@ const AdminDashboard = () => {
     }
     setIsSyncing(true);
     
-    setTimeout(() => {
-      try {
-        addBlog({
-          title: newBlogData.title,
-          category: newBlogData.category || "General",
-          summary: newBlogData.summary,
-          image: newBlogData.image || "https://images.pexels.com/photos/4144923/pexels-photo-4144923.jpeg?w=600&h=400&fit=crop",
-          achievement: newBlogData.achievement
+    try {
+      let finalImageUrl = newBlogData.image || "";
+
+      if (blogImageFile) {
+        const formData = new FormData();
+        formData.append("image", blogImageFile);
+        const uploadRes = await axios.post("http://localhost:5000/api/upload", formData, {
+          headers: { "Content-Type": "multipart/form-data" }
         });
-        toast.success("Successfully Published Blog!");
-        setIsAddingBlog(false);
-        setNewBlogData({ title: "", category: "", summary: "", image: "", achievement: false });
-      } catch (error) {
-        console.error("Error adding blog:", error);
-        toast.error("Failed to publish blog.");
-      } finally {
-        setIsSyncing(false);
+        finalImageUrl = "http://localhost:5000" + uploadRes.data.url;
       }
-    }, 800);
+      
+      addBlog({
+        title: newBlogData.title,
+        category: newBlogData.category || "General",
+        summary: newBlogData.summary,
+        image: finalImageUrl,
+        achievement: newBlogData.achievement
+      });
+      toast.success("Successfully Published Blog!");
+      setIsAddingBlog(false);
+      setNewBlogData({ title: "", category: "", summary: "", image: "", achievement: false });
+      setBlogImageFile(null);
+    } catch (error) {
+      console.error("Error adding blog:", error);
+      toast.error("Failed to publish blog.");
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   // Edit/Delete Handlers
@@ -583,6 +620,14 @@ const AdminDashboard = () => {
                     <Label>Image URL (Optional)</Label>
                     <Input placeholder="https://..." value={newCourseData.image} onChange={e => setNewCourseData({...newCourseData, image: e.target.value})} />
                   </div>
+                  <div className="space-y-2">
+                    <Label>Or Upload Local Image</Label>
+                    <ImageUpload 
+                      onImageCropped={(file) => setCourseImageFile(file)} 
+                      aspectRatio={16/9} 
+                      label="Upload Course Image" 
+                    />
+                  </div>
                 </div>
                 <Button className="w-full mt-4 gap-2" disabled={isSyncing}>
                   {isSyncing ? (
@@ -643,6 +688,14 @@ const AdminDashboard = () => {
                   <div className="space-y-1 sm:col-span-2">
                     <Label>Profile Image URL (Optional)</Label>
                     <Input placeholder="https://..." value={newTeacherData.image} onChange={e => setNewTeacherData({...newTeacherData, image: e.target.value})} />
+                  </div>
+                  <div className="space-y-2 sm:col-span-2">
+                    <Label>Or Upload Local Image</Label>
+                    <ImageUpload 
+                      onImageCropped={(file) => setTeacherImageFile(file)} 
+                      aspectRatio={1} 
+                      label="Upload Faculty Picture" 
+                    />
                   </div>
                 </div>
                 <Button className="w-full mt-4 gap-2" disabled={isSyncing}>
@@ -841,6 +894,14 @@ const AdminDashboard = () => {
                   <div className="space-y-1">
                     <Label>Cover Image URL (Optional)</Label>
                     <Input placeholder="https://..." value={newBlogData.image} onChange={e => setNewBlogData({...newBlogData, image: e.target.value})} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Or Upload Local Image</Label>
+                    <ImageUpload 
+                      onImageCropped={(file) => setBlogImageFile(file)} 
+                      aspectRatio={16/9} 
+                      label="Upload Blog Cover" 
+                    />
                   </div>
                   <div className="flex items-center gap-2 mt-2">
                     <input 
